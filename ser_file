@@ -1,0 +1,1038 @@
+import os
+import pickle
+import shutil
+import sys
+import uuid
+
+from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QMainWindow, QApplication
+
+############################
+from fighter_class import *
+from mechanic import *
+
+
+############################
+
+global list_for_fight
+list_for_fight = []
+list_of_cards1 = []
+list_of_cards2 = []
+
+
+class Window(QMainWindow):
+    def __init__(self, parent=None):
+        super(Window, self).__init__(parent)
+        self.setGeometry(400, 100, 1330, 870)
+        # self.centralwidget = QtWidgets.QWidget(MainWindow)
+        # self.centralwidget.setObjectName("centralwidget")
+        self.verticalLayoutWidget = QtWidgets.QWidget(self)
+        self.verticalLayoutWidget.setGeometry(QtCore.QRect(40, 100, 301, 411))
+        self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
+        self.main_choice_layout = QtWidgets.QVBoxLayout(self.verticalLayoutWidget)
+        self.main_choice_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_choice_layout.setObjectName("main_choice_layout")
+
+        # Button to see fighters
+        self.see_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.see_button.setObjectName("see_button")
+        self.see_button.setText("Смотреть бойцов")
+        self.main_choice_layout.addWidget(self.see_button)
+
+        # Button to wright fighters
+        self.wright_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.wright_button.setObjectName("wright_button")
+        self.wright_button.setText("Записать бойца")
+        self.main_choice_layout.addWidget(self.wright_button)
+
+        # button desabled
+        self.choos_fight_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.choos_fight_button.setObjectName("choos_fight_button")
+        self.choos_fight_button.setText("Сохранить итоги")
+        self.main_choice_layout.addWidget(self.choos_fight_button)
+
+        # Button to read news (desabled)
+        self.read_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.read_button.setObjectName("read_button")
+        self.read_button.setText("Читать новости")
+        self.main_choice_layout.addWidget(self.read_button)
+
+        # Exit button (and save)
+        self.exit_button = QtWidgets.QPushButton(self.verticalLayoutWidget)
+        self.exit_button.setObjectName("exit_button")
+        self.exit_button.setText("Выйти")
+        self.main_choice_layout.addWidget(self.exit_button)
+
+        # Fighters list
+        self.listView = QtWidgets.QListWidget(self)
+        self.listView.setGeometry(QtCore.QRect(380, 100, 381, 191))
+        self.listView.setObjectName("listView")
+
+        # Fighters list to choose
+
+        # self.listView2 = QtWidgets.QListWidget(self)
+        # self.listView2.setGeometry(QtCore.QRect(380, 100, 381, 191))
+        # self.listView2.setObjectName("listView2")
+
+        # head
+        self.chapter_label = QtWidgets.QLabel(self)
+        self.chapter_label.setGeometry(QtCore.QRect(130, 20, 621, 71))
+        font = QtGui.QFont()
+        font.setFamily("Times New Roman")
+        font.setPointSize(36)
+        self.chapter_label.setFont(font)
+        self.chapter_label.setObjectName("chapter_label")
+        self.chapter_label.setText("Чемпионат по борьбе")
+
+        # main img
+        self.label_for_image = QtWidgets.QLabel(self)
+        self.label_for_image.setGeometry(QtCore.QRect(380, 310, 381, 201))
+        self.label_for_image.setObjectName("label_for_image")
+        pixmap = QPixmap('files/anvil.jpg')
+        pixmap = pixmap.scaled(381, 201)
+        self.label_for_image.setPixmap(pixmap)
+
+        ########################  enter data widgets  #############################
+
+        self.enter_line = QtWidgets.QLineEdit(self)
+        self.enter_line.setGeometry(600, 100, 100, 30)
+
+        self.name_ent_label = QtWidgets.QLabel(self)
+        self.name_ent_label.setGeometry(470, 100, 100, 30)
+        self.name_ent_label.setText('Введите имя')
+
+        self.continue_button = QtWidgets.QPushButton(self)
+        self.continue_button.setText('Перейти к выбору изображения')
+        self.continue_button.setGeometry(470, 150, 230, 30)
+
+        self.save_button = QtWidgets.QPushButton(self)
+        self.save_button.setText('Сохранить бойца')
+        self.save_button.setGeometry(470, 250, 230, 30)
+
+        self.ex_saving_button = QtWidgets.QPushButton(self)
+        self.ex_saving_button.setText('Выйти из режима записи')
+        self.ex_saving_button.setGeometry(470, 250, 230, 30)
+
+        self.esc_button = QtWidgets.QPushButton(self)
+        self.esc_button.setText('Отмена')
+        self.esc_button.setGeometry(470, 200, 230, 30)
+
+        self.enter_line.hide()
+        self.continue_button.hide()
+        self.save_button.hide()
+        self.name_ent_label.hide()
+        self.ex_saving_button.hide()
+        self.esc_button.hide()
+
+        #####################   widgets to see fighters ###################
+
+        #### Name-label
+        self.name_label_see = QtWidgets.QLabel(self)
+        font2 = QtGui.QFont()
+        font2.setFamily("Times New Roman")
+        font2.setPointSize(16)
+        self.name_label_see.setFont(font2)
+        self.name_label_see.setGeometry(470, 100, 230, 30)
+        self.name_label_see.setText('Имя бойца')
+
+        self.num_fights_label = QtWidgets.QLabel(self)
+        font3 = QtGui.QFont()
+        font3.setFamily("Times New Roman")
+        font3.setPointSize(13)
+        self.num_fights_label.setFont(font3)
+        self.num_fights_label.setGeometry(400, 130, 230, 30)
+        self.num_fights_label.setText('Количество боёв')
+
+        self.num_vic_label = QtWidgets.QLabel(self)
+        font3.setPointSize(13)
+        self.num_vic_label.setFont(font3)
+        self.num_vic_label.setGeometry(400, 160, 230, 30)
+        self.num_vic_label.setText('Количество побед')
+
+        self.num_defeats_label = QtWidgets.QLabel(self)
+        font3.setPointSize(13)
+        self.num_defeats_label.setFont(font3)
+        self.num_defeats_label.setGeometry(400, 190, 270, 30)
+        self.num_defeats_label.setText('Количество поражений')
+
+        self.num_nones_label = QtWidgets.QLabel(self)
+        font3.setPointSize(13)
+        self.num_nones_label.setFont(font3)
+        self.num_nones_label.setGeometry(400, 220, 230, 30)
+        self.num_nones_label.setText('Количество ничьих')
+
+        self.num_ruin_label = QtWidgets.QLabel(self)
+        font3.setPointSize(13)
+        self.num_ruin_label.setFont(font3)
+        self.num_ruin_label.setGeometry(400, 250, 230, 30)
+        self.num_ruin_label.setText('    Победители:')
+
+        self.num_ruin_list = QtWidgets.QListWidget(self)
+        font3.setPointSize(13)
+        self.num_ruin_list.setFont(font3)
+        self.num_ruin_list.setGeometry(400, 280, 230, 210)
+
+        self.winners_label = QtWidgets.QLabel(self)
+        font3.setPointSize(13)
+        self.winners_label.setFont(font3)
+        self.winners_label.setGeometry(400, 500, 230, 30)
+        self.winners_label.setText('    Проигравшие')
+
+        self.num_winners_list = QtWidgets.QListWidget(self)
+        font3.setPointSize(13)
+        self.num_winners_list.setFont(font3)
+        self.num_winners_list.setGeometry(400, 530, 230, 210)
+
+        self.nonners_label = QtWidgets.QLabel(self)
+        font3.setPointSize(13)
+        self.nonners_label.setFont(font3)
+        self.nonners_label.setGeometry(400, 750, 230, 30)
+        self.nonners_label.setText('    С кем ничья')
+
+        self.num_nonners_list = QtWidgets.QListWidget(self)
+        font3.setPointSize(13)
+        self.num_nonners_list.setFont(font3)
+        self.num_nonners_list.setGeometry(400, 780, 230, 70)
+
+        #######################################################################  CARDS
+
+        self.my_card_label1 = QtWidgets.QPushButton(self)
+        self.my_card_label1.setGeometry(360, 560, 140, 200)
+        self.my_card_label1.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+        # self.my_card_label1.setText(f'{my_cards[0]}')
+
+        self.my_card_label2 = QtWidgets.QPushButton(self)
+        self.my_card_label2.setGeometry(520, 560, 140, 200)
+        self.my_card_label2.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+        # self.my_card_label2.setText(f'{my_cards[1]}')
+
+        self.my_card_label3 = QtWidgets.QPushButton(self)
+        self.my_card_label3.setGeometry(680, 560, 140, 200)
+        self.my_card_label3.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+        # self.my_card_label3.setText(f'{my_cards[2]}')
+
+        self.my_card_label4 = QtWidgets.QPushButton(self)
+        self.my_card_label4.setGeometry(840, 560, 140, 200)
+        self.my_card_label4.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+        # self.my_card_label4.setText(f'{my_cards[3]}')
+
+        self.my_card_label5 = QtWidgets.QPushButton(self)
+        self.my_card_label5.setGeometry(1000, 560, 140, 200)
+        self.my_card_label5.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+        # self.my_card_label5.setText(f'{my_cards[4]}')
+
+        self.my_card_label6 = QtWidgets.QPushButton(self)
+        self.my_card_label6.setGeometry(1160, 560, 140, 200)
+        self.my_card_label6.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+        # self.my_card_label6.setText(f'{my_cards[5]}')
+
+        ################################### DRAW THE CARDS
+
+        self.enemy_card_label1 = QtWidgets.QPushButton(self)
+        self.enemy_card_label1.setGeometry(160, 560, 140, 200)
+        self.enemy_card_label1.setStyleSheet("background-color: rgb(111, 0, 220); border-radius: 20px;")
+        # self.enemy_card_label1.setText(f'{card2}')
+
+        ### portret
+
+        self.portret = QtWidgets.QLabel(self)
+        self.portret.setGeometry(QtCore.QRect(700, 100, 360, 475))
+        # self.portret.setObjectName("label_for_image")
+        pixmap = QPixmap('files/anvil.jpg')
+        pixmap = pixmap.scaled(381, 501)
+        self.portret.setPixmap(pixmap)
+
+        self.back_show_button = QtWidgets.QPushButton(self)
+        self.back_show_button.setGeometry(70, 590, 230, 30)
+        self.back_show_button.setText('Назад')
+
+        ############################################################
+
+        ## Choise-widgets
+
+        #### choise
+        self.yes_button = QtWidgets.QPushButton(self)
+        self.yes_button.setGeometry(740, 460, 300, 57)
+        self.yes_button.setText('Выбрать этого бойца для боя')
+
+        ########### START FIGHT
+
+        self.start_fight = QtWidgets.QPushButton(self)
+        self.start_fight.setGeometry(400, 200, 300, 50)
+
+        ############### DRAW FIGHT ###################################
+
+        ########### IMG 1, 2
+
+        self.first_fighter_picture = QtWidgets.QLabel(self)
+        self.first_fighter_picture.setGeometry(QtCore.QRect(400, 150, 200, 300))
+        pixmap = QPixmap('files/anvil.jpg')
+        pixmap = pixmap.scaled(200, 300)
+        self.first_fighter_picture.setPixmap(pixmap)
+
+        self.second_fighter_picture = QtWidgets.QLabel(self)
+        self.second_fighter_picture.setGeometry(QtCore.QRect(1100, 150, 200, 300))
+        pixmap = QPixmap('files/anvil.jpg')
+        pixmap = pixmap.scaled(200, 300)
+        self.second_fighter_picture.setPixmap(pixmap)
+
+        ##### Names
+        self.first_name_label = QtWidgets.QLabel(self)
+        self.first_name_label.setGeometry(400, 100, 150, 30)
+        self.first_name_label.setText('Имя первого бойца')
+
+        self.second_name_label = QtWidgets.QLabel(self)
+        self.second_name_label.setGeometry(1100, 100, 150, 30)
+        self.second_name_label.setText('Имя второго бойца')
+
+        ####### center-label
+
+        self.center_fight_label = QtWidgets.QLabel(self)
+        self.center_fight_label.setGeometry(750, 100, 150, 30)
+        self.center_fight_label.setText('СОБЫТИЯ БОЯ')
+
+        ##### events
+        self.button_choice_card = QtWidgets.QPushButton(self)
+        self.button_choice_card.setText('События раунда')
+        self.button_choice_card.setGeometry(750, 100, 150, 30)
+        self.button_choice_card.hide()
+
+        self.event_label = QtWidgets.QLabel(self)
+        self.event_label.setGeometry(650, 140, 200, 300)
+        self.event_label.hide()
+
+        ### list of events
+
+        self.list_show_events = QtWidgets.QListWidget(self)
+        self.list_show_events.setGeometry(QtCore.QRect(657, 150, 381, 191))
+
+        ###############     energy
+
+        self.energy1_label = QtWidgets.QLabel(self)
+        self.energy1_label.setStyleSheet("color: rgb(255, 0, 127);")
+        self.energy1_label.setGeometry(400, 115, 150, 30)
+        self.energy1_label.setText('Энергия: 10')
+
+        self.energy2_label = QtWidgets.QLabel(self)
+        self.energy2_label.setStyleSheet("color: rgb(255, 0, 127);")
+        self.energy2_label.setGeometry(1100, 115, 150, 30)
+        self.energy2_label.setText('Энергия: 10')
+
+        ############################# strike-data
+
+        ########### strike-label
+
+        self.uron_label = QtWidgets.QLabel(self)
+        self.uron_label.setGeometry(400, 455, 200, 20)
+        self.uron_label.setText('УРОН:')
+
+        self.head1_label = QtWidgets.QLabel(self)
+        self.head1_label.setText('Голова: 5')
+        self.head1_label.setStyleSheet("color: yellow; background-color: rgb(0, 10, 150)")
+        self.head1_label.setGeometry(400, 480, 200, 20)
+
+        self.corp1_label = QtWidgets.QLabel(self)
+        self.corp1_label.setText('Корпус: 5')
+        self.corp1_label.setStyleSheet("color: yellow; background-color: rgb(0, 10, 150)")
+        self.corp1_label.setGeometry(400, 495, 200, 20)
+
+        self.leg1_label = QtWidgets.QLabel(self)
+        self.leg1_label.setText('Ноги: 5')
+        self.leg1_label.setStyleSheet("color: yellow; background-color: rgb(0, 10, 150)")
+        self.leg1_label.setGeometry(400, 510, 200, 20)
+
+        self.uron_label2 = QtWidgets.QLabel(self)
+        self.uron_label2.setGeometry(1100, 455, 200, 20)
+        self.uron_label2.setText('УРОН:')
+
+        self.head2_label = QtWidgets.QLabel(self)
+        self.head2_label.setText('Голова: 5')
+        self.head2_label.setStyleSheet("color: yellow; background-color: rgb(0, 10, 150)")
+        self.head2_label.setGeometry(1100, 480, 200, 20)
+
+        self.corp2_label = QtWidgets.QLabel(self)
+        self.corp2_label.setText('Корпус: 5')
+        self.corp2_label.setStyleSheet("color: yellow; background-color: rgb(0, 10, 150)")
+        self.corp2_label.setGeometry(1100, 495, 200, 20)
+
+        self.leg2_label = QtWidgets.QLabel(self)
+        self.leg2_label.setText('Ноги: 5')
+        self.leg2_label.setStyleSheet("color: yellow; background-color: rgb(0, 10, 150)")
+        self.leg2_label.setGeometry(1100, 510, 200, 20)
+
+        ### SCORE
+        self.score_label = QtWidgets.QLabel(self)
+        self.score_label.setGeometry(650, 400, 360, 50)
+        self.score_label.setText('Счёт: 0 - 0')
+        font4 = QtGui.QFont()
+        font4.setFamily("Times New Roman")
+        font4.setPointSize(36)
+        self.score_label.setFont(font4)
+
+        ##### VICTORY_LABEL
+        self.victory_label = QtWidgets.QLabel(self)
+        self.victory_label.setGeometry(650, 490, 360, 50)
+        self.victory_label.setFont(font3)
+
+        #### TALANTS
+        self.talant1 = QtWidgets.QLabel(self)
+        self.talant1.setGeometry(550, 100, 150, 30)
+
+        self.talant2 = QtWidgets.QLabel(self)
+        self.talant2.setGeometry(1250, 100, 150, 30)
+
+        ##### FINISH AND SAVE
+
+        self.itog = QtWidgets.QPushButton(self)
+        self.itog.setGeometry(650, 790, 360, 50)
+        self.itog.setText('Завершить бой')
+
+       
+
+        ###################################### functions ############################
+
+        # def main_fight(F1, F2):
+
+        def draw_cards():
+            global list_of_cards1, list_of_cards2
+            if list_of_cards1 != []:
+                print('Карты раздавать не нужно')
+                print(list_of_cards1)
+                print(list_of_cards2)
+                pass
+            else:
+                print('Начинается раздача карт')
+                giving()
+
+            global my_cards
+            global enemy_cards
+            self.list_show_events.clear()
+
+            # print(my_cards[0])
+            self.my_card_label1.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+            self.my_card_label1.setText(f'{my_cards[0]}')
+            self.my_card_label2.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+            self.my_card_label2.setText(f'{my_cards[1]}')
+            self.my_card_label3.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+            self.my_card_label3.setText(f'{my_cards[2]}')
+            self.my_card_label4.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+            self.my_card_label4.setText(f'{my_cards[3]}')
+            self.my_card_label5.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+            self.my_card_label5.setText(f'{my_cards[4]}')
+            self.my_card_label6.setStyleSheet("background-color: rgb(255, 0, 127); border-radius: 20px;")
+            self.my_card_label6.setText(f'{my_cards[5]}')
+
+            self.my_card_label1.show()
+            self.my_card_label2.show()
+            self.my_card_label3.show()
+            self.my_card_label4.show()
+            self.my_card_label5.show()
+            self.my_card_label6.show()
+
+        def card_1():
+            global list_for_fight, firts_fighter, second_fighter
+            print('Запустилась функция CARD_1')
+            # print(list_for_fight)
+            ### Снова условоно обозначаем 1 и 2 бойца:
+            for el in list_of_fighters:
+                if el.name == list_for_fight[0]:
+                    firts_fighter = el
+                    # print(f'Имя первого бойца: {firts_fighter.name}')
+
+            for el2 in list_of_fighters:
+                if el2.name == list_for_fight[1]:
+                    second_fighter = el2
+                    # print(f'Имя второго бойца: {second_fighter.name}')
+            other_card = random.choice(enemy_cards)
+            enemy_cards.remove(other_card)
+            firts_fighter.round(second_fighter, my_cards[0], other_card, F1_points, F2_points)
+
+            self.my_card_label1.setStyleSheet("background-color: rgb(0, 255, 127); border-radius: 20px;")
+            self.enemy_card_label1.setText(f'{other_card}')
+            self.enemy_card_label1.show()
+            self.my_card_label1.setEnabled(False)
+            update_labels()
+
+        def card_2():
+            global list_for_fight, firts_fighter, second_fighter
+            print('Запустилась функция CARD_2')
+            # print(list_for_fight)
+            ### Снова условоно обозначаем 1 и 2 бойца:
+            for el in list_of_fighters:
+                if el.name == list_for_fight[0]:
+                    firts_fighter = el
+                    # print(f'Имя первого бойца: {firts_fighter.name}')
+
+            for el2 in list_of_fighters:
+                if el2.name == list_for_fight[1]:
+                    second_fighter = el2
+                    # print(f'Имя второго бойца: {second_fighter.name}')
+            other_card = random.choice(enemy_cards)
+            enemy_cards.remove(other_card)
+            firts_fighter.round(second_fighter, my_cards[1], other_card, F1_points, F2_points)
+
+            self.my_card_label2.setStyleSheet("background-color: rgb(0, 255, 127); border-radius: 20px;")
+            self.enemy_card_label1.setText(f'{other_card}')
+            self.enemy_card_label1.show()
+            self.my_card_label2.setEnabled(False)
+            update_labels()
+
+        def card_3():
+            global list_for_fight, firts_fighter, second_fighter
+            print('Запустилась функция CARD_3')
+            # print(list_for_fight)
+            ### Снова условоно обозначаем 1 и 2 бойца:
+            for el in list_of_fighters:
+                if el.name == list_for_fight[0]:
+                    firts_fighter = el
+                    # print(f'Имя первого бойца: {firts_fighter.name}')
+
+            for el2 in list_of_fighters:
+                if el2.name == list_for_fight[1]:
+                    second_fighter = el2
+                    # print(f'Имя второго бойца: {second_fighter.name}')
+            other_card = random.choice(enemy_cards)
+            enemy_cards.remove(other_card)
+            firts_fighter.round(second_fighter, my_cards[2], other_card, F1_points, F2_points)
+
+            self.my_card_label3.setStyleSheet("background-color: rgb(0, 255, 127); border-radius: 20px;")
+            self.enemy_card_label1.setText(f'{other_card}')
+            self.enemy_card_label1.show()
+            self.my_card_label3.setEnabled(False)
+            update_labels()
+
+        def card_4():
+            global list_for_fight, firts_fighter, second_fighter
+            print('Запустилась функция CARD_4')
+            # print(list_for_fight)
+            ### Снова условоно обозначаем 1 и 2 бойца:
+            for el in list_of_fighters:
+                if el.name == list_for_fight[0]:
+                    firts_fighter = el
+                    # print(f'Имя первого бойца: {firts_fighter.name}')
+
+            for el2 in list_of_fighters:
+                if el2.name == list_for_fight[1]:
+                    second_fighter = el2
+                    # print(f'Имя второго бойца: {second_fighter.name}')
+            other_card = random.choice(enemy_cards)
+            enemy_cards.remove(other_card)
+            firts_fighter.round(second_fighter, my_cards[3], other_card, F1_points, F2_points)
+
+            self.my_card_label4.setStyleSheet("background-color: rgb(0, 255, 127); border-radius: 20px;")
+            self.enemy_card_label1.setText(f'{other_card}')
+            self.enemy_card_label1.show()
+            self.my_card_label4.setEnabled(False)
+            update_labels()
+
+        def card_5():
+            global list_for_fight, firts_fighter, second_fighter
+            print('Запустилась функция CARD_5')
+            # print(list_for_fight)
+            ### Снова условоно обозначаем 1 и 2 бойца:
+            for el in list_of_fighters:
+                if el.name == list_for_fight[0]:
+                    firts_fighter = el
+                    # print(f'Имя первого бойца: {firts_fighter.name}')
+
+            for el2 in list_of_fighters:
+                if el2.name == list_for_fight[1]:
+                    second_fighter = el2
+                    # print(f'Имя второго бойца: {second_fighter.name}')
+            other_card = random.choice(enemy_cards)
+            enemy_cards.remove(other_card)
+            firts_fighter.round(second_fighter, my_cards[4], other_card, F1_points, F2_points)
+
+            self.my_card_label5.setStyleSheet("background-color: rgb(0, 255, 127); border-radius: 20px;")
+            self.enemy_card_label1.setText(f'{other_card}')
+            self.enemy_card_label1.show()
+            self.my_card_label5.setEnabled(False)
+            update_labels()
+
+        def card_6():
+            global list_for_fight, firts_fighter, second_fighter
+            print('Запустилась функция CARD_6')
+            # print(list_for_fight)
+            ### Снова условоно обозначаем 1 и 2 бойца:
+            for el in list_of_fighters:
+                # global first_fighter
+                if el.name == list_for_fight[0]:
+                    firts_fighter = el
+
+            for el2 in list_of_fighters:
+                # global second_fighter
+                if el2.name == list_for_fight[1]:
+                    second_fighter = el2
+
+            other_card = random.choice(enemy_cards)
+            enemy_cards.remove(other_card)
+            firts_fighter.round(second_fighter, my_cards[5], other_card, F1_points, F2_points)
+
+            self.my_card_label6.setStyleSheet("background-color: rgb(0, 255, 127); border-radius: 20px;")
+            self.enemy_card_label1.setText(f'{other_card}')
+            self.enemy_card_label1.show()
+            self.my_card_label6.setEnabled(False)
+            update_labels()
+
+        def update_labels():
+            global list_of_score, head_1_lost, head_2_lost, list_of_events, firts_fighter
+            print('UPDATE_LABELS')
+
+            self.score_label.setText(f'Счёт: {round(list_of_score[-2], 1)} - {round(list_of_score[-1], 1)}')
+            self.head1_label.setText(f'Голова: {round(head_1_lost[-1], 1)}')
+            self.head2_label.setText(f'Голова: {round(head_2_lost[-1], 1)}')
+            self.corp1_label.setText(f'Корпус: {round(corp_1_lost[-1], 1)}')
+            self.corp2_label.setText(f'Корпус: {round(corp_2_lost[-1], 1)}')
+            self.leg1_label.setText(f'Ноги: {round(leg_1_lost[-1], 1)}')
+            self.leg2_label.setText(f'Ноги: {round(leg_2_lost[-1], 1)}')
+
+            self.energy1_label.setText(f'Энергия: {energy_1_list[-1]}')
+            self.energy2_label.setText(f'Энергия: {energy_2_list[-1]}')
+
+            # print(f'Проверяем шлобальность переменной - {firts_fighter.name}')
+
+        def add_event():
+            print('ЗАПУСТИЛАСЬ ADD_EVEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEENT')
+            self.list_show_events.clear()
+            # if list_of_events == []:
+            #     list_of_events.append('Раунд выдался скучный и осторожный')
+
+            for el in list_of_events:
+                self.list_show_events.addItem(el)
+                if list_of_events == []:
+                    list_of_events.append('Раунд выдался скучный и осторожный')
+                    add_event()
+            check_victory()
+
+        def check_victory():
+            print('Запустилась CHECK_VICNORYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY!')
+            print(VICTORY_LIST)
+            if VICTORY_LIST != []:
+                self.victory_label.setText(list_of_events[-1])
+                self.victory_label.show()
+
+                self.my_card_label1.setEnabled(False)
+                self.my_card_label2.setEnabled(False)
+                self.my_card_label3.setEnabled(False)
+                self.my_card_label4.setEnabled(False)
+                self.my_card_label5.setEnabled(False)
+                self.my_card_label6.setEnabled(False)
+                self.itog.show()
+
+            else:
+                print('МОЖНО ПРОДОЛЖАТЬ')
+
+        def fight_finish():
+            global list_for_fight, my_cards, enemy_cards
+            print('FINIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIISH!!!!!!!!!!!!')
+            hide_all()
+            list_for_fight.pop(-1)
+            list_for_fight.pop(-1)
+
+            self.my_card_label1.setEnabled(True)
+            self.my_card_label2.setEnabled(True)
+            self.my_card_label3.setEnabled(True)
+            self.my_card_label4.setEnabled(True)
+            self.my_card_label5.setEnabled(True)
+            self.my_card_label6.setEnabled(True)
+
+            self.energy1_label.setText('10')
+            self.energy2_label.setText('10')
+            self.head1_label.setText('Голова: 5')
+            self.head2_label.setText('Голова: 5')
+            self.corp1_label.setText('Корпус: 5')
+            self.corp2_label.setText('Корпус: 5')
+            self.leg1_label.setText('Ноги: 5')
+            self.leg2_label.setText('Ноги: 5')
+
+            self.score_label.setText('Счёт: 0 - 0')
+
+            my_cards.clear()
+            enemy_cards.clear()
+
+            list_of_events.clear()
+            VICTORY_LIST.clear()
+            list_of_score.clear()
+
+            energy_1_list.clear()
+            energy_2_list.clear()
+
+            head_1_lost.clear()
+            head_2_lost.clear()
+
+            corp_1_lost.clear()
+            corp_2_lost.clear()
+
+            leg_1_lost.clear()
+            leg_2_lost.clear()
+
+            list_of_cards1.clear()
+            list_of_cards2.clear()
+
+            print(list_of_events)
+            print(VICTORY_LIST)
+            print(list_of_score)
+            print(energy_1_list)
+            print(energy_2_list)
+            print(head_1_lost)
+            print(head_2_lost)
+            print(corp_2_lost)
+            print(corp_1_lost)
+            print(leg_1_lost)
+            print(leg_2_lost)
+
+        def show_fight_labels():
+            self.start_fight.hide()
+            print('запустилась функция show_fight_labels. Она показывает виджеты боя')
+            draw_cards()
+
+            ### Условоно обозначаем 1 и 2 бойца:
+            for el in list_of_fighters:
+                if el.name == list_for_fight[0]:
+                    firts_fighter = el
+                    # print(f'Имя первого бойца: {firts_fighter.name}')
+
+            for el2 in list_of_fighters:
+                if el2.name == list_for_fight[1]:
+                    second_fighter = el2
+                    # print(f'Имя первого бойца: {second_fighter.name}')
+
+            self.first_name_label.setText(list_for_fight[0])
+            self.first_name_label.show()
+            self.second_name_label.setText(list_for_fight[1])
+            self.second_name_label.show()
+            self.center_fight_label.show()
+            self.event_label.show()
+
+            pixmap = QPixmap(firts_fighter.image)
+            pixmap = pixmap.scaled(200, 300)
+            self.first_fighter_picture.setPixmap(pixmap)
+            self.first_fighter_picture.show()
+
+            pixmap = QPixmap(second_fighter.image)
+            pixmap = pixmap.scaled(200, 300)
+            self.second_fighter_picture.setPixmap(pixmap)
+            self.second_fighter_picture.show()
+
+            self.list_show_events.show()
+
+            self.energy1_label.show()
+            self.energy2_label.show()
+            self.head1_label.show()
+            self.head2_label.show()
+            self.head2_label.show()
+            self.uron_label.show()
+            self.uron_label2.show()
+            self.corp1_label.show()
+            self.corp2_label.show()
+            self.leg1_label.show()
+            self.leg2_label.show()
+            self.score_label.show()
+
+            # ['knockout_power', 'block', 'energy_more']
+
+            if firts_fighter.talant == 'block':
+                self.talant1.setText('Защита')
+            elif firts_fighter.talant == 'knockout_power':
+                self.talant1.setText('Нокаутёр')
+            elif firts_fighter.talant == 'energy_more':
+                self.talant1.setText('Энергия')
+            self.talant1.show()
+
+            if second_fighter.talant == 'block':
+                self.talant2.setText('Защита')
+            elif second_fighter.talant == 'knockout_power':
+                self.talant2.setText('Нокаутёр')
+            elif second_fighter.talant == 'energy_more':
+                self.talant2.setText('Энергия')
+
+            self.talant2.show()
+
+        def choose_fighters():
+
+            print('Запутсилась функция CHOOSE_FIGHTERS')
+            hide_all()
+            self.listView.show()
+
+            # TODO  сделать кнопки неактивными во время боя
+
+            name = self.name_label_see.text()
+            # print(name)
+            list_for_fight.append(name)
+            # print(f'Вот список бойцов: {list_for_fight}')
+            if len(list_for_fight) == 2:
+                hide_all()
+                self.start_fight.setText(f'Начать бой {list_for_fight[0]} против {list_for_fight[1]}')
+                self.start_fight.show()
+
+        def hide_all():
+            self.talant2.hide()
+            self.talant1.hide()
+            self.itog.hide()
+            self.victory_label.hide()
+            self.score_label.hide()
+            self.first_name_label.hide()
+            self.second_name_label.hide()
+            self.listView.hide()
+            # self.listView2.hide()
+            self.back_show_button.hide()
+            self.event_label.hide()
+            self.enter_line.hide()
+            self.name_label_see.hide()
+            self.num_fights_label.hide()
+            self.num_nones_label.hide()
+            self.num_defeats_label.hide()
+            self.num_vic_label.hide()
+            self.num_ruin_label.hide()
+            self.num_ruin_list.hide()
+            self.num_winners_list.hide()
+            self.winners_label.hide()
+            self.nonners_label.hide()
+            self.num_nonners_list.hide()
+            self.portret.hide()
+            self.yes_button.hide()
+            self.start_fight.hide()
+
+            self.my_card_label1.hide()
+            self.my_card_label2.hide()
+            self.my_card_label3.hide()
+            self.my_card_label4.hide()
+            self.my_card_label5.hide()
+            self.my_card_label6.hide()
+            self.enemy_card_label1.hide()
+            self.energy1_label.hide()
+            self.energy2_label.hide()
+            self.head1_label.hide()
+            self.head2_label.hide()
+            self.uron_label.hide()
+            self.uron_label2.hide()
+            self.corp1_label.hide()
+            self.corp2_label.hide()
+            self.leg1_label.hide()
+            self.leg2_label.hide()
+
+            self.score_label.hide()
+            self.talant1.hide()
+            self.talant2.hide()
+
+            self.first_fighter_picture.hide()
+            self.second_fighter_picture.hide()
+            self.list_show_events.hide()
+            self.first_name_label.hide()
+            self.second_name_label.hide()
+            self.center_fight_label.hide()
+            self.victory_label.hide()
+            self.continue_button.hide()
+            self.name_ent_label.hide()
+            self.esc_button.hide()
+            self.ex_saving_button.hide()
+
+        def check_file():
+            # EXSIST of FILE
+            global list_of_fighters
+
+            if os.path.isfile('C:/PythonWorks/ser_fight/files/save_fighters') == True:
+
+                with open('save_fighters', 'rb') as old_file:
+                    list_of_fighters = []
+                    old_list = pickle.load(old_file)
+                    for obj in old_list:
+                        list_of_fighters.append(obj)
+
+                show_all()
+            else:
+                list_of_fighters = []
+                with open('C:/PythonWorks/ser_fight/files/save_fighters', 'wb') as new_wr:
+                    pickle.dump(list_of_fighters, new_wr)
+                show_all()
+
+        def end_of_saving():
+            self.save_button.hide()
+            self.enter_line.hide()
+            self.save_button.hide()
+            self.ex_saving_button.hide()
+            self.label_for_image.hide()
+            self.esc_button.hide()
+            self.continue_button.hide()
+            self.name_ent_label.hide()
+
+        ### SAVE THE FIGHTER
+        def enter_info():
+            hide_all()
+            self.label_for_image.show()
+            pixmap = QPixmap('files/scroll.jpg')
+            pixmap = pixmap.scaled(381, 201)
+            self.label_for_image.setPixmap(pixmap)
+
+            self.enter_line.clear()
+            self.continue_button.show()
+
+            print('Запустилась функция ENTER_INFO')
+            self.listView.hide()
+
+            self.enter_line.show()
+            self.esc_button.show()
+            self.name_ent_label.show()
+
+        def choice_picture():
+            # entered_name = self.enter_name.text()
+            img_choice = QtWidgets.QFileDialog.getOpenFileName(parent=self, caption='Выбор картинки', directory='C:\\',
+                                                               filter="Images (*.jpg)")
+
+            my_img = img_choice[0]
+            unic_name = str((uuid.uuid4()))
+            new_photo = shutil.copyfile(my_img, f'C:/PythonWorks/ser_fight/files/{unic_name}.jpg')
+            global saved_photo
+            saved_photo = f'C:/PythonWorks/ser_fight/files/{unic_name}.jpg'
+
+            self.save_button.show()
+
+        def saving():
+            global saved_photo, list_of_fighters
+            print('Запустилась функция SAVING')
+            entered_name = self.enter_line.text()
+            # self.enter_line.clear()
+            # print(entered_name)
+            # print(new_photo)
+
+            if entered_name != '':
+                print(entered_name)
+                # print('Здесь должно сохраниться')
+
+                new_fighter = Fighter(entered_name, random.choice([9, 10, 11, 12]),
+                                      random.choice(['knockout_power', 'block', 'energy_more']), 1, 10, 5, 5, 5,
+                                      0, 0, 0, 0, 0, 0, [], [], [], saved_photo)
+                # print(new_fighter)
+
+                hide_all()
+
+                list_of_fighters.append(new_fighter)
+                # for ob in list_of_fighters:
+                #     print(ob.name)
+                # # hide_all()
+            else:
+                print('Что-то пошло не так!')
+
+            self.save_button.hide()
+            self.ex_saving_button.show()
+            end_of_saving()
+
+        def show_fighters_list():
+            hide_all()
+            print('Запустилась функция LIST_OF_FIGHTERS')
+
+            self.listView.clear()
+
+            for object in list_of_fighters:
+                self.listView.addItem(object.name)
+                # print(object)
+            self.listView.show()
+
+        def show_fighters():
+            print('Запустилась функция SHOW_FIGHTERS')
+
+            shown_string = self.listView.currentItem().text()
+            # print(shown_string)
+
+            for seek in list_of_fighters:
+                if seek.name == shown_string:
+                    object = seek
+            # print(object.image)
+
+            self.label_for_image.hide()
+            self.listView.hide()
+
+            self.name_label_see.setText(object.name)
+            self.name_label_see.show()
+            self.num_fights_label.setText(f'Количество боёв: {str(object.victories + object.defeats + object.nones)}')
+            self.num_fights_label.show()
+            self.num_nones_label.setText(f'Количество ничьих: {object.nones}')
+            self.num_nones_label.show()
+            self.num_defeats_label.setText(f'Количество поражений: {object.defeats}')
+            self.num_defeats_label.show()
+            self.num_vic_label.setText(f'Количество побед: {object.victories}')
+            self.num_vic_label.show()
+
+            self.num_nonners_list.clear()
+            for nonner in object.who_none:
+                self.num_nonners_list.addItem(nonner)
+
+            self.num_ruin_list.clear()
+            for victor in object.who_win:
+                self.num_ruin_list.addItem(victor)
+                # print(f'Попытка воспроизвести список победителей: {victor}')
+            self.num_ruin_label.show()
+            self.num_ruin_list.show()
+
+            self.num_winners_list.clear()
+            for looser in object.who_is_won:
+                self.num_winners_list.addItem(looser)
+            self.num_winners_list.show()
+            self.winners_label.show()
+            self.nonners_label.show()
+            self.num_nonners_list.show()
+            self.portret.show()
+            self.back_show_button.show()
+            self.yes_button.show()
+
+            pixmap = QPixmap(object.image)
+            pixmap = pixmap.scaled(381, 501)
+            self.portret.setPixmap(pixmap)
+
+        def save_and_exit():
+            print('Запустилась функция SAVE_AND_EXIT')
+            global list_of_fighters
+            with open('save_fighters', 'wb') as new_wr:
+                pickle.dump(list_of_fighters, new_wr)
+            self.close()
+
+        def only_save():
+            global list_of_fighters
+            with open('save_fighters', 'wb') as new_wr:
+                pickle.dump(list_of_fighters, new_wr)
+
+        ########################### BUTTONS ########################################
+
+        self.listView.itemDoubleClicked.connect(show_fighters)
+
+        self.exit_button.clicked.connect(save_and_exit)
+        self.wright_button.clicked.connect(enter_info)
+        self.save_button.clicked.connect(saving)
+        self.continue_button.show()
+        self.continue_button.clicked.connect(choice_picture)
+        self.ex_saving_button.clicked.connect(end_of_saving)
+        self.esc_button.clicked.connect(end_of_saving)
+        self.see_button.clicked.connect(show_fighters_list)
+        self.back_show_button.clicked.connect(hide_all)
+        self.yes_button.clicked.connect(choose_fighters)
+        self.start_fight.clicked.connect(show_fight_labels)
+        self.itog.clicked.connect(fight_finish)
+        self.choos_fight_button.clicked.connect(only_save)
+
+        ########################### CARD_BUTTONS ##################################
+
+        self.my_card_label1.clicked.connect(card_1)
+        self.my_card_label1.clicked.connect(add_event)
+        self.my_card_label2.clicked.connect(card_2)
+        self.my_card_label2.clicked.connect(add_event)
+        self.my_card_label3.clicked.connect(card_3)
+        self.my_card_label3.clicked.connect(add_event)
+        self.my_card_label4.clicked.connect(card_4)
+        self.my_card_label4.clicked.connect(add_event)
+        self.my_card_label5.clicked.connect(card_5)
+        self.my_card_label5.clicked.connect(add_event)
+        self.my_card_label6.clicked.connect(card_6)
+        self.my_card_label6.clicked.connect(add_event)
+
+        ###########################  MAIN START  #################################
+        def show_all():
+            hide_all()
+            # list_of_fighters = []
+            self.show()
+
+        check_file()
+
+app = QApplication(sys.argv)
+window = Window()
+sys.exit(app.exec_())
